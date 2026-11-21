@@ -6,6 +6,8 @@ on:
   push:
     paths:
       - '.github/workflows/twic.yml'
+      - 'scan-twic.py'
+      - 'repertoire-positions.json.gz'
 permissions:
   contents: read
 jobs:
@@ -17,84 +19,10 @@ jobs:
       - name: Install chess PGN parser
         run: python -m pip install python-chess==1.999
       - name: Check latest TWIC issue
-        run: |
-          python - <<'PY'
-          import hashlib
-          import io
-          import os
-          import re
-          import subprocess
-          import xml.etree.ElementTree as ET
-          import zipfile
-
-          import chess.pgn
-
-          base = 'https://theweekinchess.com'
-          def fetch(url):
-              return subprocess.check_output(['curl', '--fail', '--silent', '--show-error', '--location', '--max-time', '60', '--header', 'Accept: */*', url])
-
-          archive = fetch(base + '/twic').decode('utf-8', errors='replace')
-          issue = max(map(int, re.findall(r'/zips/twic(\d+)g\.zip', archive)))
-          archive_url = f'{base}/zips/twic{issue}g.zip'
-          positions = set('''
-          2r2b1r/pp3p1p/8/1B1kpN2/8/5P2/PPP3PP/2KR4 b - -
-          r1r3k1/1p1qppbp/p2p1np1/4n3/2PNP3/1PN1BP2/P3Q1PP/R4RK1 b - -
-          q3kb1r/3npppp/3p1n2/1Bp5/3Pb3/2P2N2/1P3PPP/1NBQ1RK1 b k -
-          r2qk2r/pp2bppp/2bppn2/6B1/3QP3/2N2N2/PPP2PPP/2KR3R w kq -
-          r1b1k2r/1pq1bppp/p2p4/3Pp3/1p1P4/5Q2/PBP2PPP/R3RBK1 b kq -
-          r2q1rk1/1p2ppbp/p1bp1np1/8/2PNP3/2NQ3P/PP3PP1/R1B2RK1 b - -
-          r1bqr1k1/pp3p1p/3p1npb/4p3/3nPP2/1PN3P1/PBPQ3P/1K1R1BNR w - -
-          '''.strip().splitlines())
-          positions = {p.strip() for p in positions}
-          seen = {item.text for item in ET.parse('docs/feed.xml').findall('./channel/item/guid')}
-          matches = []
-          selected = []
-          count = 0
-          with zipfile.ZipFile(io.BytesIO(fetch(archive_url))) as bundle:
-              for name in bundle.namelist():
-                  if not name.lower().endswith('.pgn'):
-                      continue
-                  with io.TextIOWrapper(bundle.open(name), encoding='latin-1') as pgn:
-                      while (game := chess.pgn.read_game(pgn)) is not None:
-                          count += 1
-                          if game.errors:
-                              continue
-                          moves = list(game.mainline_moves())
-                          board = game.board()
-                          for move in moves[:64]:
-                              board.push(move)
-                              if ' '.join(board.fen().split()[:4]) not in positions:
-                                  continue
-                              digest = hashlib.sha256(' '.join(m.uci() for m in moves).encode()).hexdigest()
-                              guid = 'urn:sha256:' + digest
-                              if guid not in seen:
-                                  seen.add(guid)
-                                  game.headers['TWICIssue'] = str(issue)
-                                  game.headers['RepertoireMatchPly'] = str(board.ply())
-                                  game.headers['RepertoireGUID'] = guid
-                                  selected.append(game)
-                                  h = game.headers
-                                  matches.append(f"{h['Date']} · {h['White']} – {h['Black']} · {h['Event']} · {h['Result']} · match at ply {board.ply()}")
-                              break
-          if not count:
-              raise RuntimeError('The TWIC archive contained no readable PGN records')
-          from pathlib import Path
-          output = Path('weekly-output')
-          output.mkdir(exist_ok=True)
-          if selected:
-              with (output / f'TWIC_{issue}_Repertoire_Candidates.pgn').open('w', encoding='utf-8') as out:
-                  for game in selected:
-                      out.write(game.accept(chess.pgn.StringExporter(headers=True, variations=False, comments=False)) + '\n\n')
-          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as summary:
-              summary.write(f'## TWIC {issue}\n\nScreened {count:,} game records against {len(positions)} pilot positions. Found {len(matches)} unpublished matches.\n\n')
-              summary.write(f'[Source PGN archive]({archive_url})\n\n')
-              for match in matches:
-                  summary.write('    ' + ' '.join(match.split()) + '\n')
-              summary.write('\nReview candidates for Model Games or Repertoire Theory Watch before adding them to the feed.\n')
-          PY
-      - name: Upload matching games
+        run: python scan-twic.py
+      - name: Upload report and matching games
         uses: actions/upload-artifact@v4
         with:
           name: twic-repertoire-pgn
-          path: weekly-output/*.pgn
-          if-no-files-found: ignore
+          path: weekly-output/
+          if-no-files-found: error

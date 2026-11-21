@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install chess PGN parser
         run: python -m pip install python-chess==1.999
       - name: Check latest TWIC issue
@@ -23,7 +23,7 @@ jobs:
           import io
           import os
           import re
-          import urllib.request
+          import subprocess
           import xml.etree.ElementTree as ET
           import zipfile
 
@@ -31,7 +31,7 @@ jobs:
 
           base = 'https://theweekinchess.com'
           def fetch(url):
-              return urllib.request.urlopen(url, timeout=60).read()
+              return subprocess.check_output(['curl', '--fail', '--silent', '--show-error', '--location', '--max-time', '60', '--header', 'Accept: */*', url])
 
           archive = fetch(base + '/twic').decode('utf-8', errors='replace')
           issue = max(map(int, re.findall(r'/zips/twic(\d+)g\.zip', archive)))

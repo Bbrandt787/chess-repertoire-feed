@@ -28,6 +28,34 @@ def rating(game, color):
     value = game.headers.get(color + 'Elo', '')
     return int(value) if value.isdecimal() else None
 
+def looks_fast(game):
+    time_control = game.headers.get('TimeControl', '')
+    if match := re.fullmatch(r'(\d+)(?:\+(\d+))?', time_control):
+        base, increment = (int(value or 0) for value in match.groups())
+        return base + 40 * increment < 600
+    return bool(re.search(r'titled tue|blitz|bullet|(?:^|\W)[135]-[012](?:\W|$)', game.headers['Event'], re.I))
+
+def candidate_priority(record, junction):
+    ratings = [record['white_elo'], record['black_elo']]
+    lower_rating = min(ratings) if all(ratings) else 0
+    depth = junction['deepest_match_ply']
+    return (not record['fast_event_hint'], depth >= 22, lower_rating, depth)
+
+def shortlist(junction_groups, sources):
+    by_source = defaultdict(list)
+    for (source, _), games in junction_groups.items():
+        record, junction = max(games, key=lambda entry: candidate_priority(*entry))
+        by_source[source].append((record, junction, len(games)))
+    return {
+        source: [
+            {'guid': record['guid'], 'games_at_junction': count}
+            for record, _, count in sorted(
+                by_source[source], key=lambda entry: candidate_priority(*entry[:2]), reverse=True
+            )[:4]
+        ]
+        for source in sources
+    }
+
 def move_label(board, move):
     dots = '.' if board.turn else '...'
     return f'{board.fullmove_number}{dots}{board.san(move)}'
@@ -79,6 +107,7 @@ def scan(bundle, index, seen):
                     'result': game.headers['Result'], 'eco': game.headers.get('ECO'),
                     'opening': game.headers.get('Opening'),
                     'white_elo': rating(game, 'White'), 'black_elo': rating(game, 'Black'),
+                    'time_control': game.headers.get('TimeControl'), 'fast_event_hint': looks_fast(game),
                     'junctions': junctions,
                 }
                 matches.append((match, game))
@@ -117,6 +146,7 @@ def main():
         'issue': issue, 'source_archive': archive_url, 'records_screened': count,
         'records_skipped': skipped, 'positions_tracked': len(index['positions']),
         'sources': index['sources'], 'unpublished_candidates': [record for record, _ in matches],
+        'suggested_review_by_source': shortlist(groups, index['sources']),
     }
     (output / f'TWIC_{issue}_Repertoire_Report.json').write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8'

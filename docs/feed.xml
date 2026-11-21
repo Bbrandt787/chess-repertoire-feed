@@ -4,6 +4,32 @@
 <link>https://github.com/Bbrandt787/chess-repertoire-feed</link>
 <atom:link href="https://bbrandt787.github.io/chess-repertoire-feed/feed.xml" rel="self" type="application/rss+xml" />
 <description>Model games for practical study and theory watch games for opening research.</description>
+<lastBuildDate>Sat, 21 Nov 2026 18:40:22 GMT</lastBuildDate>
+<item>
+  <title>TWIC 1671 — Weekly Repertoire Highlights</title>
+  <link>https://lichess.org/study/VKrVITQ6/ekb7IEEH</link>
+  <guid isPermaLink="false">urn:chess-repertoire-feed:twic:1671</guid>
+  <pubDate>Sat, 21 Nov 2026 18:40:22 GMT</pubDate>
+  <category>Weekly Edition</category>
+  <category>Model Games</category>
+  <category>Repertoire Theory Watch</category>
+  <description><![CDATA[
+    <p>November 2026 · 7,379 games screened, 318 repertoire candidates, six annotated highlights.</p>
+    <p><strong>Model Games</strong></p>
+    <ul>
+      <li><strong>White Spanish · De Boer–Jens.</strong> See how 14.a4 and 15.d4 set up White’s use of the c-file with 19.Ra3 and 20.Rc3.</li>
+      <li><strong>White Rossolimo · Fedorchuk–Jovanovic.</strong> Follow 12.Qe2, 14.e5 and 16.d4 to see how White gains central space. Compare Black’s …c4 and …a5–b4 counterplay.</li>
+      <li><strong>Black Semi-Slav · Peyrer–Korneev.</strong> Study how 12…d4 13.exd4 Re8+ 14.Kf1 Qa5 turns White’s uncastled king into a target.</li>
+    </ul>
+    <p><strong>Repertoire Theory Watch</strong></p>
+    <ul>
+      <li><strong>Black Grünfeld · Kantor–Samant.</strong> After 18…Nc5 19.Be3 Nd3, where can Black realistically choose whether to accept the perpetual?</li>
+      <li><strong>Black Najdorf · Timoshin–Pranav.</strong> After 12…Qc7 13.c4, how should Black challenge White’s planned Rd1 and b4?</li>
+      <li><strong>Black Scotch Four Knights · Van Foreest–Duda.</strong> What does 10.Qf3 change about 10…Rb8 and the timing of …c5?</li>
+    </ul>
+    <p><a href="https://lichess.org/study/VKrVITQ6/ekb7IEEH">Play through the six annotated Lichess chapters</a> · <a href="https://github.com/Bbrandt787/chess-repertoire-feed/actions/runs/44936216565#artifacts">Download the 318-game repertoire PGN under Artifacts</a> · <a href="https://theweekinchess.com/zips/twic1671g.zip">Original TWIC archive</a>.</p>
+  ]]></description>
+</item>
 <item><title>[Model Games] Martirosyan – Mishra</title><link>https://lichess.org/study/NtKCkq2y/HmN8bOtV</link><guid isPermaLink="false">urn:sha256:e5f0d71e02ac9a104044502bc37398a84581acc21d713ba40b1b8f249ec296b5</guid><description>Nov 15, 2026. Total Chess Pilot. Draw. Moscow Sicilian and Black queenside counterplay.</description><category>Model Games</category><category>B52</category></item>
 <item><title>[Model Games] Hnatyshyn – Van Wely</title><link>https://lichess.org/study/NtKCkq2y/0kXIPAPb</link><guid isPermaLink="false">urn:sha256:e7a09847c03743474406ead0b8340b162fa40ad74692a8f78fe399e5fffdb77c</guid><description>Nov 14, 2026. Salamanca Masters. 0–1. Black against 5.f3, early queen exchange and an unbalanced ending.</description><category>Model Games</category><category>B54</category></item>
 <item><title>[Model Games] Suleymenov – Grebnev</title><link>https://lichess.org/study/NtKCkq2y/ZGb487Cv</link><guid isPermaLink="false">urn:sha256:f452cda48f764f806b12ec22a7b407390ce9852f8d3ecf1c6ac6f5640e173ddb</guid><description>Nov 13, 2026. Asian Nations Cup. Draw. Moscow Sicilian with ...Nd7.</description><category>Model Games</category><category>B51</category></item>

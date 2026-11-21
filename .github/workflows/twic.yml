@@ -48,6 +48,7 @@ jobs:
           positions = {p.strip() for p in positions}
           seen = {item.text for item in ET.parse('docs/feed.xml').findall('./channel/item/guid')}
           matches = []
+          selected = []
           count = 0
           with zipfile.ZipFile(io.BytesIO(fetch(archive_url))) as bundle:
               for name in bundle.namelist():
@@ -68,11 +69,22 @@ jobs:
                               guid = 'urn:sha256:' + digest
                               if guid not in seen:
                                   seen.add(guid)
+                                  game.headers['TWICIssue'] = str(issue)
+                                  game.headers['RepertoireMatchPly'] = str(board.ply())
+                                  game.headers['RepertoireGUID'] = guid
+                                  selected.append(game)
                                   h = game.headers
                                   matches.append(f"{h['Date']} · {h['White']} – {h['Black']} · {h['Event']} · {h['Result']} · match at ply {board.ply()}")
                               break
           if not count:
               raise RuntimeError('The TWIC archive contained no readable PGN records')
+          from pathlib import Path
+          output = Path('weekly-output')
+          output.mkdir(exist_ok=True)
+          if selected:
+              with (output / f'TWIC_{issue}_Repertoire_Candidates.pgn').open('w', encoding='utf-8') as out:
+                  for game in selected:
+                      out.write(game.accept(chess.pgn.StringExporter(headers=True, variations=False, comments=False)) + '\n\n')
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as summary:
               summary.write(f'## TWIC {issue}\n\nScreened {count:,} game records against {len(positions)} pilot positions. Found {len(matches)} unpublished matches.\n\n')
               summary.write(f'[Source PGN archive]({archive_url})\n\n')
@@ -80,3 +92,9 @@ jobs:
                   summary.write('    ' + ' '.join(match.split()) + '\n')
               summary.write('\nReview candidates for Model Games or Repertoire Theory Watch before adding them to the feed.\n')
           PY
+      - name: Upload matching games
+        uses: actions/upload-artifact@v4
+        with:
+          name: twic-repertoire-pgn
+          path: weekly-output/*.pgn
+          if-no-files-found: ignore
